@@ -74,8 +74,8 @@ function main()
         Flux.testmode!(model, false)
         total_loss /= cnt
         total_acc /= cnt
-        @printf("loss = %.3f", total_loss)
-        @printf("acc = %.3f", total_acc)
+        @printf("loss = %.3f\n", total_loss)
+        @printf("acc = %.3f\n", total_acc)
         checkpoint = model |> cpu
         checkpoint_weights = Tracker.data.(params(checkpoint))
         model = model |> gpu

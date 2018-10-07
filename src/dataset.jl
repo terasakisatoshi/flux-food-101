@@ -19,8 +19,10 @@ struct Dataset
     data::Array{Tuple{String,Int64},1}
     augment::Bool
     image_cache::Dict{Int,Array{RGB{Normed{UInt8,8}},2}}
+    use_cache::Bool
     function Dataset(data; train=true)
         augment=train
+        cache=train
         cache = Dict{Int,Array{RGB{Normed{UInt8,8}},2}}()
         new(length(data), data, augment, cache)
     end
@@ -28,7 +30,7 @@ end
 
 function get_example(dataset::Dataset, i::Int)
     path, label = dataset.data[i]
-    if haskey(dataset.image_cache, i)
+    if dataset.use_cache & haskey(dataset.image_cache, i)
         img = dataset.image_cache[i]
     else
         img = load(path)

@@ -24,7 +24,7 @@ end
 function get_dataset(datasetdir)
     train_paris, val_pairs = make_trainval_pairs(datasetdir)
     train_dataset = Dataset(train_paris)
-    val_dataset = Dataset(val_pairs)
+    val_dataset = Dataset(val_pairs, train=false)
     return train_dataset, val_dataset
 end
 
@@ -42,7 +42,7 @@ function main()
     for e in 1:epochs
         println("train loop ", e," / ",epochs)
         train_iter = SerialIterator(train_dataset, cache_multiplier * batchsize)
-        val_iter = SerialIterator(val_dataset, cache_multiplier * batchsize)
+        val_iter = SerialIterator(val_dataset, cache_multiplier * batchsize, shuffle=false)
         for (i, batch) in enumerate(train_iter)
             println("progress ", i," / ", floor(Int, length(train_dataset) / batchsize / cache_multiplier))
             xs = [img for (img, _) in batch]

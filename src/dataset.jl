@@ -23,18 +23,18 @@ struct Dataset
     function Dataset(data; train=true)
         augment=train
         cache=train
-        cache = Dict{Int,Array{RGB{Normed{UInt8,8}},2}}()
-        new(length(data), data, augment, cache)
+        use_cache = Dict{Int,Array{RGB{Normed{UInt8,8}},2}}()
+        new(length(data), data, augment, cache, use_cache)
     end
 end
 
 function get_example(dataset::Dataset, i::Int)
     path, label = dataset.data[i]
-    if dataset.use_cache & haskey(dataset.image_cache, i)
+    if dataset.use_cache && haskey(dataset.image_cache, i)
         img = dataset.image_cache[i]
     else
         img = load(path)
-        dataset.image_cache[i]=img
+        dataset.image_cache[i]=imresize(img, (224, 224))
     end
     img = copyimg(img)
     if dataset.augment

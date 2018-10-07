@@ -24,7 +24,7 @@ struct Dataset
         augment=train
         cache=train
         use_cache = Dict{Int,Array{RGB{Normed{UInt8,8}},2}}()
-        new(length(data), data, augment, cache, use_cache)
+        new(length(data), data, augment, image_cache, use_cache)
     end
 end
 

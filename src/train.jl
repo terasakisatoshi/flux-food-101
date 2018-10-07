@@ -14,9 +14,6 @@ using CuArrays
 function define_model()
     vgg = VGG19()
     Flux.testmode!(vgg.layers, false)
-    dims5 = size(vgg.layers[end-5].W)[2]
-    dims6 = size(vgg.layers[end-3].W)[2]
-    dims7 = size(vgg.layers[end-1].W)[2]
     model = Chain(vgg.layers[1:end-2],
                   Dense(4096, 101),
                   softmax)
@@ -93,4 +90,4 @@ function main()
     println("Finished to train")
 end
 
-#main()
+main()

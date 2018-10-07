@@ -16,17 +16,25 @@ end
 
 struct Dataset
     len::Int
-    data
+    data::Array{Tuple{String,Int64},1}
     augment::Bool
+    image_cache::Dict{Int,Array{RGB{Normed{UInt8,8}},2}}
     function Dataset(data; train=true)
         augment=train
-        new(length(data), data, augment)
+        cache = Dict{Int,Array{RGB{Normed{UInt8,8}},2}}()
+        new(length(data), data, augment, cache)
     end
 end
 
 function get_example(dataset::Dataset, i::Int)
     path, label = dataset.data[i]
-    img = load(path)
+    if haskey(dataset.image_cache, i)
+        img = dataset.image_cache[i]
+    else
+        img = load(path)
+        dataset.image_cache[i]=img
+    end
+    img = copyimg(img)
     if dataset.augment
         tfm = LinearMap(RotMatrix(-pi/2 * rand([0,1,2,3])))
         img = warp(img, tfm)

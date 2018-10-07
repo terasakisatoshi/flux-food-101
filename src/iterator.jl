@@ -2,7 +2,7 @@ using Random
 
 struct SerialIterator
     len::Int
-    get_example
+    get_example::Function
     batchsize::Int
     indices::Vector
     function SerialIterator(dataset::Dataset, batchsize::Int; shuffle=true)

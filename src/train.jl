@@ -77,7 +77,6 @@ function main()
         @printf("acc = %.3f\n", total_acc)
         checkpoint = model |> cpu
         checkpoint_weights = Tracker.data.(params(checkpoint))
-        model = model |> gpu
         @save "checkpoint.bson" checkpoint
         @save "checkpoint_weights.bson" checkpoint_weights
 

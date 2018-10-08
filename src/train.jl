@@ -13,11 +13,10 @@ using CuArrays
 
 function define_model()
     vgg = VGG19()
-    Flux.testmode!(vgg.layers, false)
     model = Chain(vgg.layers[1:end-2],
                   Dense(4096, 101),
                   softmax)
-    println(model)
+    Flux.testmode!(model, false)
     return model
 end
 

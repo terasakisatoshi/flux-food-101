@@ -58,7 +58,7 @@ function main()
         Flux.testmode!(model)
         cnt = 0
         for (i, batch) in enumerate(val_iter)
-            println("progress", i," / ", floor(Int, length(val_dataset) / batchsize / cache_multiplier))
+            println("progress ", i," / ", floor(Int, length(val_dataset) / batchsize / cache_multiplier))
             xs = [img for (img, _) in batch]
             ys = [label for (_, label) in batch]
             X = cat(xs..., dims=4)

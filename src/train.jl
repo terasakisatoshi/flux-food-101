@@ -6,6 +6,7 @@ using Printf
 using Flux
 using Statistics
 using Flux: onehotbatch, onecold, crossentropy
+using Base.Filesystem
 using Base.Iterators: partition
 using Metalhead:VGG19
 using BSON: @load, @save
@@ -35,6 +36,11 @@ function main()
     train_dataset, val_dataset = get_dataset(datasetdir)
 
     model = define_model() |> gpu
+    if isfile("checkpoint_weights.bson")
+        println("loading checkpoin file")
+        @load "checkpoint_weights.bson" checkpoint_weights
+        Flux.loadparams!(model, checkpoint_weights)
+    end
     loss(x,y)= crossentropy(model(x), y)
     accuracy(x, y) = mean(onecold(model(x)) .== onecold(y))
     optimizer = ADAM(params(model))

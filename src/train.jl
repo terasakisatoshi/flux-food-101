@@ -44,10 +44,8 @@ function main()
         val_iter = SerialIterator(val_dataset, cache_multiplier * batchsize, shuffle=false)
         for (i, batch) in enumerate(train_iter)
             println("progress ", i," / ", floor(Int, length(train_dataset) / batchsize / cache_multiplier))
-            xs = [img for (img, _) in batch]
-            ys = [label for (_, label) in batch]
-            X = cat(xs..., dims=4)
-            Y = onehotbatch(ys, 1:101)
+            X = cat([img for (img, _) in batch]..., dims=4)
+            Y = onehotbatch([label for (_, label) in batch], 1:101)
             data = [(X[:,:,:,b] |> gpu, Y[:,b] |> gpu) for b in partition(1: cache_multiplier * batchsize, batchsize)]
             Flux.train!(loss, data, optimizer)
         end
@@ -59,10 +57,8 @@ function main()
         cnt = 0
         for (i, batch) in enumerate(val_iter)
             println("progress ", i," / ", floor(Int, length(val_dataset) / batchsize / cache_multiplier))
-            xs = [img for (img, _) in batch]
-            ys = [label for (_, label) in batch]
-            X = cat(xs..., dims=4)
-            Y = onehotbatch(ys, 1:101)
+            X = cat([img for (img, _) in batch]..., dims=4)
+            Y = onehotbatch([label for (_, label) in batch], 1:101)
             data = [(X[:,:,:,b] |> gpu, Y[:,b] |> gpu) for b in partition(1: cache_multiplier * batchsize, batchsize)]
             for (X,Y) in data
                 total_loss += loss(X,Y)

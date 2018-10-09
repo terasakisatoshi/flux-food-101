@@ -35,7 +35,6 @@ function get_example(dataset::Dataset, i::Int)
     else
         img = load(path)
         dataset.image_cache[i] = img
-        #dataset.image_cache[i] = imresize(img, (224, 224))
     end
     img = copyimg(img)
     if dataset.augment

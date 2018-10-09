@@ -48,13 +48,27 @@ function main()
         println("train loop ", e," / ",epochs)
         train_iter = SerialIterator(train_dataset, cache_multiplier * batchsize)
         val_iter = SerialIterator(val_dataset, cache_multiplier * batchsize, shuffle=false)
+        total_loss=0
+        total_acc=0
+        cnt=0
         for (i, batch) in enumerate(train_iter)
             println("progress ", i," / ", floor(Int, length(train_dataset) / batchsize / cache_multiplier))
             X = cat([img for (img, _) in batch]..., dims=4)
             Y = onehotbatch([label for (_, label) in batch], 1:101)
             data = [(X[:,:,:,b] |> gpu, Y[:,b] |> gpu) for b in partition(1: cache_multiplier * batchsize, batchsize)]
             Flux.train!(loss, data, optimizer)
+            Flux.testmode!(model)
+            for (X,Y) in data
+                total_loss += loss(X,Y)
+                total_acc  += accuracy(X,Y)
+                cnt+=1
+            end
+            Flux.testmode!(model, false)
         end
+        total_loss /= cnt
+        total_acc /= cnt
+        @printf("loss = %.3f\n", total_loss)
+        @printf("acc = %.3f\n", total_acc)
 
         println("check accuracy")
         total_loss=0

@@ -6,6 +6,7 @@ using Printf
 using Flux
 using Statistics
 using Flux: onehotbatch, onecold, crossentropy
+using Base.Filesystem
 using Base.Iterators: partition
 using Metalhead:VGG19
 using BSON: @load, @save
@@ -35,6 +36,11 @@ function main()
     train_dataset, val_dataset = get_dataset(datasetdir)
 
     model = define_model() |> gpu
+    if isfile("checkpoint_weights.bson")
+        println("loading checkpoin file")
+        @load "checkpoint_weights.bson" checkpoint_weights
+        Flux.loadparams!(model, checkpoint_weights)
+    end
     loss(x,y)= crossentropy(model(x), y)
     accuracy(x, y) = mean(onecold(model(x)) .== onecold(y))
     optimizer = ADAM(params(model))
@@ -42,27 +48,37 @@ function main()
         println("train loop ", e," / ",epochs)
         train_iter = SerialIterator(train_dataset, cache_multiplier * batchsize)
         val_iter = SerialIterator(val_dataset, cache_multiplier * batchsize, shuffle=false)
+        total_loss = 0
+        total_acc = 0
+        cnt = 0
         for (i, batch) in enumerate(train_iter)
             println("progress ", i," / ", floor(Int, length(train_dataset) / batchsize / cache_multiplier))
-            xs = [img for (img, _) in batch]
-            ys = [label for (_, label) in batch]
-            X = cat(xs..., dims=4)
-            Y = onehotbatch(ys, 1:101)
+            X = cat([img for (img, _) in batch]..., dims=4)
+            Y = onehotbatch([label for (_, label) in batch], 1:101)
             data = [(X[:,:,:,b] |> gpu, Y[:,b] |> gpu) for b in partition(1: cache_multiplier * batchsize, batchsize)]
             Flux.train!(loss, data, optimizer)
+            Flux.testmode!(model)
+            for (X,Y) in data
+                total_loss += loss(X,Y)
+                total_acc  += accuracy(X,Y)
+                cnt+=1
+            end
+            Flux.testmode!(model, false)
         end
+        total_loss /= cnt
+        total_acc /= cnt
+        @printf("loss = %.3f\n", total_loss)
+        @printf("acc = %.3f\n", total_acc)
 
         println("check accuracy")
-        total_loss=0
-        total_acc=0
         Flux.testmode!(model)
+        total_loss = 0
+        total_acc = 0
         cnt = 0
         for (i, batch) in enumerate(val_iter)
             println("progress ", i," / ", floor(Int, length(val_dataset) / batchsize / cache_multiplier))
-            xs = [img for (img, _) in batch]
-            ys = [label for (_, label) in batch]
-            X = cat(xs..., dims=4)
-            Y = onehotbatch(ys, 1:101)
+            X = cat([img for (img, _) in batch]..., dims=4)
+            Y = onehotbatch([label for (_, label) in batch], 1:101)
             data = [(X[:,:,:,b] |> gpu, Y[:,b] |> gpu) for b in partition(1: cache_multiplier * batchsize, batchsize)]
             for (X,Y) in data
                 total_loss += loss(X,Y)

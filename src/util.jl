@@ -1,12 +1,12 @@
 using Base.Filesystem
 using Base.Iterators
 using JSON
-using CSV:CSV
+using CSV: CSV
 using Random
 
-BLACKLIST = ["lasagna/3787908",
-             "steak/1340977",
-             "bread_pudding/1375816"]
+blacklist = ["lasagna/3787908",
+                   "steak/1340977",
+                   "bread_pudding/1375816"]
 
 function make_test_pairs(datasetdir)
     p = joinpath(datasetdir,"meta","classes.txt")
@@ -19,7 +19,7 @@ function make_test_pairs(datasetdir)
         paths = klass2path[klass]
         for i in 1:length(paths)
             p = paths[i]
-            if p in BLACKLIST
+            if p in blacklist
                 continue
             end
             push!(pairs, (joinpath(datasetdir, "images", p * ".jpg"),label))
@@ -30,7 +30,7 @@ end
 
 function make_trainval_pairs(datasetdir;divide_ratio=0.95)
     p = joinpath(datasetdir,"meta","classes.txt")
-    classes = CSV.read(p,header=false)
+    classes = CSV.read(p, header=false)
     classes = Dict([k_name for k_name in enumerate(convert(Array{String,1},classes[:Column1]))])
     json_file = "train.json"
     klass2path = JSON.parsefile(joinpath(datasetdir,"meta",json_file))
@@ -41,7 +41,7 @@ function make_trainval_pairs(datasetdir;divide_ratio=0.95)
         shuffle!(paths)
         for i in shuffle(1:length(paths))
             p = paths[i]
-            if p in BLACKLIST
+            if p in blacklist
                 continue
             end
             if i<= length(paths) * divide_ratio
@@ -51,5 +51,5 @@ function make_trainval_pairs(datasetdir;divide_ratio=0.95)
             end
         end
     end
-    return train_pairs,val_pairs
+    return train_pairs, val_pairs
 end

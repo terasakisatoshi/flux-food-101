@@ -34,19 +34,28 @@ function get_example(dataset::Dataset, i::Int)
         img = dataset.image_cache[i]
     else
         img = load(path)
-        dataset.image_cache[i]=imresize(img, (224, 224))
+        dataset.image_cache[i] = img
     end
     img = copyimg(img)
     if dataset.augment
+        #scale transform
+        img = imresize(img, (rand(368:512), rand(368:512)))
+        #crop
+        h, w = size(img)
+        b_h = rand(1:h - 224)
+        b_w = rand(1:w - 224)
+        img = img[b_h:b_h+224, b_w:b_w+224]
         tfm = LinearMap(RotMatrix(-pi/2 * rand([0,1,2,3])))
         img = warp(img, tfm)
-        domirror = rand([true,false])
+        img = imresize(img,(224, 224))
+
+        domirror = rand([true, false])
         if domirror
-            img = channelview(copyimg(img))
+            img = channelview(img)
             newimg = zeros(eltype(img), size(img))
             x_range = size(img)[3]
             for i in 1:x_range
-                newimg[:,:,x_range - i + 1] = img[:,:,i]
+                newimg[:,:,x_range - i + 1] = img[:, :, i]
             end
             img = colorview(RGB, newimg)
         end

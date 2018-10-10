@@ -48,9 +48,9 @@ function main()
         println("train loop ", e," / ",epochs)
         train_iter = SerialIterator(train_dataset, cache_multiplier * batchsize)
         val_iter = SerialIterator(val_dataset, cache_multiplier * batchsize, shuffle=false)
-        total_loss=0
-        total_acc=0
-        cnt=0
+        total_loss = 0
+        total_acc = 0
+        cnt = 0
         for (i, batch) in enumerate(train_iter)
             println("progress ", i," / ", floor(Int, length(train_dataset) / batchsize / cache_multiplier))
             X = cat([img for (img, _) in batch]..., dims=4)
@@ -71,9 +71,9 @@ function main()
         @printf("acc = %.3f\n", total_acc)
 
         println("check accuracy")
-        total_loss=0
-        total_acc=0
         Flux.testmode!(model)
+        total_loss = 0
+        total_acc = 0
         cnt = 0
         for (i, batch) in enumerate(val_iter)
             println("progress ", i," / ", floor(Int, length(val_dataset) / batchsize / cache_multiplier))

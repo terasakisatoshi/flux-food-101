@@ -84,12 +84,18 @@ mv2() = Chain(Conv((3,3),3=>32,stride=2,pad=1),
                     Dense(120,101),
                     )
 
-#= test
-@show size(mv2(rand(224,224,3,2)))
-=#
 
 MobileNetv2() = MobileNetv2(mv2())
 
 @treelike MobileNetv2
 
 (mv2::MobileNetv2)(x) = mv2.layers(x)
+
+#=
+using Flux
+using CuArrays
+model = MobileNetv2()
+@show size(model(rand(224,224,3,2)))
+model = model |> gpu
+@show size(model(rand(224,224,3,2)|> gpu))
+=#

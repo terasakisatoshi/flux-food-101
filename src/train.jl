@@ -1,6 +1,7 @@
 include("util.jl")
 include("./dataset.jl")
 include("./iterator.jl")
+include("mobilenetv2.jl")
 
 using Printf
 using Flux
@@ -10,14 +11,10 @@ using Base.Filesystem
 using Base.Iterators: partition
 using Metalhead:VGG19
 using BSON: @load, @save
-using CuArrays
+#using CuArrays
 
 function define_model()
-    vgg = VGG19()
-    model = Chain(vgg.layers[1:end-2],
-                  Dense(4096, 101),
-                  softmax)
-    Flux.testmode!(model, false)
+    model = MobileNetv2()
     return model
 end
 
@@ -29,7 +26,7 @@ function get_dataset(datasetdir)
 end
 
 function main()
-    datasetdir = expanduser("~/dataSSD120GB/food-101")
+    datasetdir = expanduser("~/dataset/food-101")
     batchsize = 32
     epochs = 100
     cache_multiplier = 10

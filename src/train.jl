@@ -1,7 +1,7 @@
 include("util.jl")
 include("./dataset.jl")
 include("./iterator.jl")
-include("mobilenetv2.jl")
+include("residue.jl")
 
 using Printf
 using Flux
@@ -9,12 +9,11 @@ using Statistics
 using Flux: onehotbatch, onecold, crossentropy
 using Base.Filesystem
 using Base.Iterators: partition
-using Metalhead:VGG19
 using BSON: @load, @save
-#using CuArrays
+using CuArrays
 
 function define_model()
-    model = MobileNetv2()
+    model = NaiveResNet()
     return model
 end
 
@@ -26,7 +25,7 @@ function get_dataset(datasetdir)
 end
 
 function main()
-    datasetdir = expanduser("~/dataset/food-101")
+    datasetdir = expanduser("~/dataSSD120GB/food-101")
     batchsize = 32
     epochs = 100
     cache_multiplier = 10

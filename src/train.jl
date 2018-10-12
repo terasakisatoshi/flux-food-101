@@ -1,6 +1,7 @@
 include("util.jl")
 include("./dataset.jl")
 include("./iterator.jl")
+include("residue.jl")
 
 using Printf
 using Flux
@@ -8,16 +9,11 @@ using Statistics
 using Flux: onehotbatch, onecold, crossentropy
 using Base.Filesystem
 using Base.Iterators: partition
-using Metalhead:VGG19
 using BSON: @load, @save
 using CuArrays
 
 function define_model()
-    vgg = VGG19()
-    model = Chain(vgg.layers[1:end-2],
-                  Dense(4096, 101),
-                  softmax)
-    Flux.testmode!(model, false)
+    model = NaiveResNet()
     return model
 end
 
@@ -32,7 +28,7 @@ function main()
     datasetdir = expanduser("~/dataSSD120GB/food-101")
     batchsize = 32
     epochs = 100
-    cache_multiplier = 10
+    cache_multiplier = 1
     train_dataset, val_dataset = get_dataset(datasetdir)
 
     model = define_model() |> gpu
@@ -48,8 +44,8 @@ function main()
         println("train loop ", e," / ",epochs)
         train_iter = SerialIterator(train_dataset, cache_multiplier * batchsize)
         val_iter = SerialIterator(val_dataset, cache_multiplier * batchsize, shuffle=false)
-        total_loss = 0
-        total_acc = 0
+        total_loss = Float32(0.0)
+        total_acc = Float32(0.0)
         cnt = 0
         for (i, batch) in enumerate(train_iter)
             println("progress ", i," / ", floor(Int, length(train_dataset) / batchsize / cache_multiplier))
@@ -59,9 +55,9 @@ function main()
             Flux.train!(loss, data, optimizer)
             Flux.testmode!(model)
             for (X,Y) in data
-                total_loss += loss(X,Y)
-                total_acc  += accuracy(X,Y)
-                cnt+=1
+                total_loss += loss(X, Y).data
+                total_acc  += accuracy(X, Y)
+                cnt += 1
             end
             Flux.testmode!(model, false)
         end
@@ -71,19 +67,19 @@ function main()
         @printf("acc = %.3f\n", total_acc)
 
         println("check accuracy")
-        Flux.testmode!(model)
-        total_loss = 0
-        total_acc = 0
+        total_loss = Float32(0.0)
+        total_acc = Float32(0.0)
         cnt = 0
+        Flux.testmode!(model)
         for (i, batch) in enumerate(val_iter)
             println("progress ", i," / ", floor(Int, length(val_dataset) / batchsize / cache_multiplier))
             X = cat([img for (img, _) in batch]..., dims=4)
             Y = onehotbatch([label for (_, label) in batch], 1:101)
-            data = [(X[:,:,:,b] |> gpu, Y[:,b] |> gpu) for b in partition(1: cache_multiplier * batchsize, batchsize)]
+            data = [(X[:,:,:,b], Y[:,b]) for b in partition(1: cache_multiplier * batchsize, batchsize)]
             for (X,Y) in data
-                total_loss += loss(X,Y)
-                total_acc += accuracy(X,Y)
-                cnt+=1
+                total_loss += loss(X, Y).data
+                total_acc  += accuracy(X, Y)
+                cnt += 1
             end
         end
         Flux.testmode!(model, false)
@@ -104,4 +100,4 @@ function main()
     println("Finished to train")
 end
 
-main()
+#main()

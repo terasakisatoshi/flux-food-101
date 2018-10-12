@@ -4,9 +4,9 @@ using Images, CoordinateTransformations
 #taken from
 #https://github.com/FluxML/Metalhead.jl/blob/b3c09e58ffa907ab1ef8946a6f9e45858bea0a93/src/utils.jl#L28
 function preprocess(img)
-    img = channelview(imresize(img, (224, 224))) .* 255
-    img .-= [123.68, 116.779, 103.939]
+    img = channelview(imresize(img, (224, 224))) .* float64(1)
     img = permutedims(img, (3,2,1))
+    img
 end
 
 function copyimg(img)
@@ -45,7 +45,7 @@ function get_example(dataset::Dataset, i::Int)
         b_h = rand(1:h - 224)
         b_w = rand(1:w - 224)
         img = img[b_h:b_h+224, b_w:b_w+224]
-        tfm = LinearMap(RotMatrix(-pi/2 * rand([0,1,2,3])))
+        tfm = LinearMap(RotMatrix(rand(range(-pi/12,length=50,stop=pi/12))))
         img = warp(img, tfm)
         img = imresize(img,(224, 224))
 

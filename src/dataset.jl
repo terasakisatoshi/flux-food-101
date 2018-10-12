@@ -4,8 +4,8 @@ using Images, CoordinateTransformations
 #taken from
 #https://github.com/FluxML/Metalhead.jl/blob/b3c09e58ffa907ab1ef8946a6f9e45858bea0a93/src/utils.jl#L28
 function preprocess(img)
-    img = channelview(imresize(img, (224, 224))) .* 255.
-    img .-= [123.68, 116.779, 103.939]
+    img = channelview(imresize(img, (224, 224))) .* float64(1)
+    #img .-= [123.68, 116.779, 103.939]
     img = permutedims(img, (3,2,1))
     img
 end

@@ -82,6 +82,7 @@ mv2() = Chain(Conv((3,3),3=>32,stride=2,pad=1),
                     MeanPool((7,7)),
                     x -> reshape(x, :, size(x, 4)),
                     Dense(120,101),
+                    softmax
                     )
 
 
